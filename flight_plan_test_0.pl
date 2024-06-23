@@ -1,6 +1,6 @@
 % Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
-flight(2, departure, 800, 'FL100', scheduled).
-flight(1, arrival, 805, 'FL200', scheduled).
+flight(1, departure, 800, 'FL100', scheduled).
+flight(2, arrival, 805, 'FL200', scheduled).
 flight(3, departure, 810, 'FL101', scheduled).
 flight(4, arrival, 815, 'FL201', scheduled).
 flight(5, departure, 820, 'FL102', scheduled).
@@ -15,9 +15,10 @@ flight(13, departure, 900, 'FL106', scheduled).
 flight(14, arrival, 905, 'FL206', scheduled).
 flight(15, departure, 910, 'FL107', scheduled).
 
+
 % Rule to check the time difference between two times (in minutes).
 time_difference(Time1, Time2, Diff) :-
-    Diff is abs(Time1 - Time2).
+    Diff is abs(Stamp1 - Stamp2).
 
 % Rule to check if two flights conflict.
 conflict(Flight1, Flight2) :-
@@ -56,3 +57,16 @@ create_flight_plan(Plan) :-
     findall(flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus), flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus), Flights),
     sort_flights_by_time(Flights, SortedFlights),
     generate_flight_plan(SortedFlights, Plan).
+
+%Predikat za ispisivanje jednog leta
+print_flight(flight(ID, Type, Time, FlightNumber, Status)) :-
+    format('Flight ID: ~d, Type: ~w, Time: ~w, Flight Number: ~w, Status: ~w~n', [ID, Type, Time, FlightNumber, Status]).
+
+print_plan([]).
+print_plan([Flight | Rest]) :-
+    print_flight(Flight),
+    print_plan(Rest).
+
+display_flight_plan() :-
+    create_flight_plan(Plan),
+    print_plan(Plan).
