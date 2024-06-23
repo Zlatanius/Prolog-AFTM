@@ -1,19 +1,19 @@
 % Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
-flight(2, departure, time(8, 0), 'FL100', scheduled).
-flight(3, arrival, time(8, 10), 'FL200', scheduled).
-flight(1, departure, time(8, 5), 'FL101', scheduled).
-flight(4, arrival, time(8, 15), 'FL201', scheduled).
-flight(5, departure, time(8, 20), 'FL102', scheduled).
-flight(6, arrival, time(8, 25), 'FL202', scheduled).
-flight(7, departure, time(8, 30), 'FL103', scheduled).
-flight(8, arrival, time(8, 35), 'FL203', scheduled).
-flight(9, departure, time(8, 40), 'FL104', scheduled).
-flight(10, arrival, time(8, 45), 'FL204', scheduled).
-flight(11, departure, time(8, 50), 'FL105', scheduled).
-flight(12, arrival, time(8, 55), 'FL205', scheduled).
-flight(13, departure, time(9, 0), 'FL106', scheduled).
-flight(14, arrival, time(9, 5), 'FL206', scheduled).
-flight(15, departure, time(9, 10), 'FL107', scheduled).
+flight(2, departure, date(2024, 6, 22), time(8, 0), 'FL100', scheduled).
+flight(3, arrival, date(2024, 6, 22), time(8, 10), 'FL200', scheduled).
+flight(1, departure, date(2024, 6, 22), time(8, 5), 'FL101', scheduled).
+flight(4, arrival, date(2024, 6, 22), time(8, 15), 'FL201', scheduled).
+flight(5, departure, date(2024, 6, 22), time(8, 20), 'FL102', scheduled).
+flight(6, arrival, date(2024, 6, 22), time(8, 25), 'FL202', scheduled).
+flight(7, departure, date(2024, 6, 22), time(8, 30), 'FL103', scheduled).
+flight(8, arrival, date(2024, 6, 22), time(8, 35), 'FL203', scheduled).
+flight(9, departure, date(2024, 6, 22), time(8, 40), 'FL104', scheduled).
+flight(10, arrival, date(2024, 6, 22), time(8, 45), 'FL204', scheduled).
+flight(11, departure, date(2024, 6, 22), time(8, 50), 'FL105', scheduled).
+flight(12, arrival, date(2024, 6, 22), time(8, 55), 'FL205', scheduled).
+flight(13, departure, date(2024, 6, 22), time(9, 0), 'FL106', scheduled).
+flight(14, arrival, date(2024, 6, 22), time(9, 5), 'FL206', scheduled).
+flight(15, departure, date(2024, 6, 22), time(9, 10), 'FL107', scheduled).
 
 
 time_difference(time(H1, M1), time(H2, M2), Diff) :-
@@ -23,15 +23,15 @@ time_difference(time(H1, M1), time(H2, M2), Diff) :-
 
 % Rule to check if two flights conflict.
 conflict(Flight1, Flight2) :-
-    flight(Flight1, Type1, Time1, _, _),
-    flight(Flight2, Type2, Time2, _, _),
+    flight(Flight1, Type1, _, Time1, _, _),
+    flight(Flight2, Type2, _, Time2, _, _),
     Type1 = Type2,
     time_difference(Time1, Time2, Diff),
     Diff < 5.
 
 % Rule to find all conflicts for a given flight.
 find_conflicts(Flight, Conflicts) :-
-    findall(Conflict, (flight(Conflict, _, _, _, _), conflict(Flight, Conflict), Conflict \= Flight), Conflicts).
+    findall(Conflict, (flight(Conflict, _, _, _, _, _), conflict(Flight, Conflict), Conflict \= Flight), Conflicts).
 
 % Rule to generate a flight plan without conflicts.
 generate_flight_plan([], []).
@@ -50,18 +50,18 @@ generate_flight_plan([Flight|Rest], Plan) :-
 sort_flights_by_time(Flights, SortedFlights) :-
     predsort(compare_flights_by_time, Flights, SortedFlights).
 
-compare_flights_by_time(Order, flight(ID1, Type1, Time1, FlightNumber1, PriorityStatus1), flight(ID2, Type2, Time2, FlightNumber2, PriorityStatus2)) :-
+compare_flights_by_time(Order, flight(ID1, Type1, Date1, Time1, FlightNumber1, PriorityStatus1), flight(ID2, Type2, Date2, Time2, FlightNumber2, PriorityStatus2)) :-
     compare(Order, Time1, Time2).
 
 % Rule to create the final flight plan.
 create_flight_plan(Plan) :-
-    findall(flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus), flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus), Flights),
+    findall(flight(ID, Type, Date, ScheduledTime, FlightNumber, PriorityStatus), flight(ID, Type, Date, ScheduledTime, FlightNumber, PriorityStatus), Flights),
     sort_flights_by_time(Flights, SortedFlights),
     generate_flight_plan(SortedFlights, Plan).
 
 %Predikat za ispisivanje jednog leta
-print_flight(flight(ID, Type, time(H, M), FlightNumber, Status)) :-
-    format('Flight ID: ~|~t~d~2+, Type: ~|~t~w~9+, Time: ~|~`0t~d~2+:~|~`0t~d~2+, Flight Number: ~w, Status: ~w~n', [ID, Type, H, M, FlightNumber, Status]).
+print_flight(flight(ID, Type, date(Year, Month, Day), time(Hour, Minute), FlightNumber, Status)) :-
+    format('Flight ID: ~|~t~d~2+, Type: ~|~t~w~9+, Date: ~d-~|~`0t~d~2+-~|~`0t~d~2+, Time: ~|~`0t~d~2+:~|~`0t~d~2+, Flight Number: ~w, Status: ~w~n', [ID, Type, Year, Month, Day, Hour, Minute, FlightNumber, Status]).
 
 print_plan([]).
 print_plan([Flight | Rest]) :-
