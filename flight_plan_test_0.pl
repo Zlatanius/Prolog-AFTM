@@ -1,7 +1,7 @@
 % Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
 flight(2, departure, time(8, 0), 'FL100', scheduled).
-flight(1, arrival, time(8, 5), 'FL200', scheduled).
-flight(3, departure, time(8, 10), 'FL101', scheduled).
+flight(3, arrival, time(8, 10), 'FL200', scheduled).
+flight(1, departure, time(8, 5), 'FL101', scheduled).
 flight(4, arrival, time(8, 15), 'FL201', scheduled).
 flight(5, departure, time(8, 20), 'FL102', scheduled).
 flight(6, arrival, time(8, 25), 'FL202', scheduled).
@@ -61,7 +61,7 @@ create_flight_plan(Plan) :-
 
 %Predikat za ispisivanje jednog leta
 print_flight(flight(ID, Type, time(H, M), FlightNumber, Status)) :-
-    format('Flight ID: ~d, Type: ~w, Time: ~|~`0t~d~2+:~|~`0t~d~2+, Flight Number: ~w, Status: ~w~n', [ID, Type, H, M, FlightNumber, Status]).
+    format('Flight ID: ~|~t~d~2+, Type: ~|~t~w~9+, Time: ~|~`0t~d~2+:~|~`0t~d~2+, Flight Number: ~w, Status: ~w~n', [ID, Type, H, M, FlightNumber, Status]).
 
 print_plan([]).
 print_plan([Flight | Rest]) :-
