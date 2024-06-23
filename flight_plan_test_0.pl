@@ -1,24 +1,25 @@
 % Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
-flight(1, departure, 800, 'FL100', scheduled).
-flight(2, arrival, 805, 'FL200', scheduled).
-flight(3, departure, 810, 'FL101', scheduled).
-flight(4, arrival, 815, 'FL201', scheduled).
-flight(5, departure, 820, 'FL102', scheduled).
-flight(6, arrival, 825, 'FL202', scheduled).
-flight(7, departure, 830, 'FL103', scheduled).
-flight(8, arrival, 835, 'FL203', scheduled).
-flight(9, departure, 840, 'FL104', scheduled).
-flight(10, arrival, 845, 'FL204', scheduled).
-flight(11, departure, 850, 'FL105', scheduled).
-flight(12, arrival, 855, 'FL205', scheduled).
-flight(13, departure, 900, 'FL106', scheduled).
-flight(14, arrival, 905, 'FL206', scheduled).
-flight(15, departure, 910, 'FL107', scheduled).
+flight(2, departure, time(8, 0), 'FL100', scheduled).
+flight(1, arrival, time(8, 5), 'FL200', scheduled).
+flight(3, departure, time(8, 10), 'FL101', scheduled).
+flight(4, arrival, time(8, 15), 'FL201', scheduled).
+flight(5, departure, time(8, 20), 'FL102', scheduled).
+flight(6, arrival, time(8, 25), 'FL202', scheduled).
+flight(7, departure, time(8, 30), 'FL103', scheduled).
+flight(8, arrival, time(8, 35), 'FL203', scheduled).
+flight(9, departure, time(8, 40), 'FL104', scheduled).
+flight(10, arrival, time(8, 45), 'FL204', scheduled).
+flight(11, departure, time(8, 50), 'FL105', scheduled).
+flight(12, arrival, time(8, 55), 'FL205', scheduled).
+flight(13, departure, time(9, 0), 'FL106', scheduled).
+flight(14, arrival, time(9, 5), 'FL206', scheduled).
+flight(15, departure, time(9, 10), 'FL107', scheduled).
 
 
-% Rule to check the time difference between two times (in minutes).
-time_difference(Time1, Time2, Diff) :-
-    Diff is abs(Stamp1 - Stamp2).
+time_difference(time(H1, M1), time(H2, M2), Diff) :-
+    Minutes1 is H1 * 60 + M1,
+    Minutes2 is H2 * 60 + M2,
+    Diff is abs(Minutes1 - Minutes2).
 
 % Rule to check if two flights conflict.
 conflict(Flight1, Flight2) :-
@@ -59,8 +60,8 @@ create_flight_plan(Plan) :-
     generate_flight_plan(SortedFlights, Plan).
 
 %Predikat za ispisivanje jednog leta
-print_flight(flight(ID, Type, Time, FlightNumber, Status)) :-
-    format('Flight ID: ~d, Type: ~w, Time: ~w, Flight Number: ~w, Status: ~w~n', [ID, Type, Time, FlightNumber, Status]).
+print_flight(flight(ID, Type, time(H, M), FlightNumber, Status)) :-
+    format('Flight ID: ~d, Type: ~w, Time: ~|~`0t~d~2+:~|~`0t~d~2+, Flight Number: ~w, Status: ~w~n', [ID, Type, H, M, FlightNumber, Status]).
 
 print_plan([]).
 print_plan([Flight | Rest]) :-
