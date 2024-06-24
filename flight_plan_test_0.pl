@@ -41,18 +41,6 @@ conflict(Flight1, Flight2) :-
 find_conflicts(Flight, Conflicts) :-
     findall(Conflict, (flight(Conflict, _, _, _, _, _), conflict(Flight, Conflict), Conflict \= Flight), Conflicts).
 
-% Rule to generate a flight plan without conflicts.
-% generate_flight_plan([], []).
-% generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|Rest], [flight(FlightID, Type, Date, Time, FlightNumber, Status)|Plan]) :-
-%     find_conflicts(FlightID, Conflicts),
-%     Conflicts = [],
-%     generate_flight_plan(Rest, Plan).
-
-% generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|Rest], Plan) :-
-%     find_conflicts(FlightID, Conflicts),
-%     Conflicts \= [],
-%     generate_flight_plan(Rest, Plan).
-
 
 %-------------------------------------------generate_flight_plan WITH CONFLICTS-----------------------------------
 
@@ -84,26 +72,38 @@ compare_flights_by_dateTime(Order, flight(ID1, Type1, Date1, Time1, FlightNumber
     Order = '=').
 
 % Rule to create the final flight plan.
-% create_flight_plan(Plan) :-
 create_flight_plan(Plan, ConflictIDs) :-
     findall(flight(ID, Type, Date, ScheduledTime, FlightNumber, PriorityStatus), flight(ID, Type, Date, ScheduledTime, FlightNumber, PriorityStatus), Flights),
     sort_flights_by_time(Flights, SortedFlights),
-    % generate_flight_plan(SortedFlights, Plan).
     generate_flight_plan(SortedFlights, Plan, ConflictIDs).
-    % write(ConflictIDs), nl.
 
 %Predikat za ispisivanje jednog leta
 print_flight(flight(ID, Type, date(Year, Month, Day), time(Hour, Minute), FlightNumber, Status)) :-
     format('Flight ID: ~|~t~d~2+, Type: ~|~t~w~9+, Date: ~d-~|~`0t~d~2+-~|~`0t~d~2+, Time: ~|~`0t~d~2+:~|~`0t~d~2+, Flight Number: ~w, Status: ~w~n', [ID, Type, Year, Month, Day, Hour, Minute, FlightNumber, Status]).
 
-print_plan([]).
-print_plan([Flight | Rest]) :-
+print_flights([]).
+print_flights([Flight | Rest]) :-
     print_flight(Flight),
-    print_plan(Rest).
+    print_flights(Rest).
+
+find_flight_by_id(FlightID, Flight) :-
+    flight(FlightID, Type, Date, Time, FlightNumber, Status),
+    Flight = flight(FlightID, Type, Date, Time, FlightNumber, Status).
+
+get_flights_from_ids([], []).
+get_flights_from_ids([FlightID|RestIDs], [Flight|RestFlights]) :-
+    find_flight_by_id(FlightID, Flight),
+    get_flights_from_ids(RestIDs, RestFlights).
+
+print_flights_from_id(FlightIDs) :-
+    get_flights_from_ids(FlightIDs, Flights),
+    % write(Flights).
+    print_flights(Flights).
 
 display_flight_plan() :-
-    % create_flight_plan(Plan),
     create_flight_plan(Plan, ConflictIDs),
-    print_plan(Plan),
-    write(ConflictIDs).
-    % ConflictIDs /= []
+    write('FLIGHT SCHEDULE: '), nl,
+    print_flights(Plan), nl,
+    write('CONFLICTS: '), nl,
+    print_flights_from_id(ConflictIDs).
+
