@@ -17,6 +17,25 @@ flight(14, arrival, date(2024, 6, 22), time(9, 5), 'FL206', scheduled).
 flight(15, departure, date(2024, 6, 21), time(8, 5), 'FL107', scheduled).
 
 
+% --------------------------------------------FLIGHT GETTERS--------------------------------------------
+
+get_flight_id(flight(FlightId, _, _, _, _, _), FlightId).
+get_flight_type(flight(_, FlightType, _, _, _, _), FlightType).
+get_flight_date(flight(_, _, FlightDate, _, _, _), FlightDate).
+get_flight_time(flight(_, _, _, FlightTime, _, _), FlightTime).
+get_flight_number(flight(_, _, _, _, FlightNumber, _), FlightNumber).
+get_flight_status(flight(_, _, _, _, _, FlightStatus), FlightStatus).
+
+
+% --------------------------------------------FLIGHT SETTERS--------------------------------------------
+
+set_flight_type(flight(FlightID, _, FlightDate, FlightTime, FlightNumber, FlightStatus), NewType, flight(FlightID, NewType, FlightDate, FlightTime, FlightNumber, FlightStatus)).
+set_flight_date(flight(FlightID, FlightType, _, FlightTime, FlightNumber, FlightStatus), NewDate, flight(FlightID, FlightType, NewDate, FlightTime, FlightNumber, FlightStatus)).
+set_flight_time(flight(FlightID, FlightType, FlightDate, _, FlightNumber, FlightStatus), NewTime, flight(FlightID, FlightType, FlightDate, NewTime, FlightNumber, FlightStatus)).
+set_flight_number(flight(FlightID, FlightType, FlightDate, FlightTime, _, FlightStatus), NewNumber, flight(FlightID, FlightType, FlightDate, FlightTime, NewNumber, FlightStatus)).
+set_flight_status(flight(FlightID, FlightType, FlightDate, FlightTime, FlightNumber, _), NewStatus, flight(FlightID, FlightType, FlightDate, FlightTime, FlightNumber, NewStatus)).
+
+
 % --------------------------------------------PLAN GENERATION--------------------------------------------
 
 % Rekurzivno pravilo za generisanje plana i liste konflikta
@@ -71,8 +90,15 @@ find_conflicts(Flight, Conflicts) :-
 
 % --------------------------------------------CONFLICT RESOLUTION--------------------------------------------
 
-% resolve_conflict(ScheduledFlights, FlightID) :-
-    
+resolve_conflict(ScheduledFlights, FlightID) :-
+    get_flight_by_id(FlightID, Flight),
+    get_flight_time(Flight, FlightTime),
+    add_five_minutes(FlightTime, NewFlightTime),
+    NewFlight is flight().
+
+    % write(NewFlightTime).
+
+
 
 
 % --------------------------------------------DISPLAY FUNCTIONS--------------------------------------------
@@ -99,18 +125,15 @@ display_date(date(Year, Month, Day)) :-
 
 % --------------------------------------------HELPER FUNTIONS--------------------------------------------
 
-%Pravilo za nalazenje IDa iz leta
-get_flight_id(flight(FlightId, _, _, _, _, _), FlightId).
-
 % Pravilo za pronalazenje leta preko IDa
-find_flight_by_id(FlightID, Flight) :-
+get_flight_by_id(FlightID, Flight) :-
     flight(FlightID, Type, Date, Time, FlightNumber, Status),
     Flight = flight(FlightID, Type, Date, Time, FlightNumber, Status).
 
 % Rekurzivno pravilo za pravljenje liste letova od liste IDeva
 get_flights_from_ids([], []).
 get_flights_from_ids([FlightID|RestIDs], [Flight|RestFlights]) :-
-    find_flight_by_id(FlightID, Flight),
+    get_flight_by_id(FlightID, Flight),
     get_flights_from_ids(RestIDs, RestFlights).
 
 % Pravilo za racunanje minuta
@@ -122,6 +145,11 @@ time_difference(Time1, Time2, Diff) :-
     time_to_minutes(Time1, Minutes1),
     time_to_minutes(Time2, Minutes2),
     Diff is abs(Minutes1 - Minutes2).
+
+add_five_minutes(time(Hour, Minute), time(NewHour, NewMinute)) :-
+    TotalMinutes is Hour * 60 + Minute + 5,
+    NewHour is (TotalMinutes // 60) mod 24,
+    NewMinute is TotalMinutes mod 60.
 
 
 % --------------------------------------------MAIN PROGRAM--------------------------------------------
