@@ -1,5 +1,5 @@
 % Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
-flight(2, departure, date(2024, 6, 22), time(8, 5), 'FL100', scheduled).
+flight(2, departure, date(2024, 6, 22), time(8, 5), 'FL100', priority).
 flight(3, departure, date(2024, 6, 22), time(8, 5), 'FL200', scheduled).
 flight(1, departure, date(2024, 6, 22), time(8, 5), 'FL101', scheduled).
 flight(4, arrival, date(2024, 6, 22), time(8, 15), 'FL201', scheduled).
@@ -11,9 +11,9 @@ flight(9, departure, date(2024, 6, 22), time(8, 40), 'FL104', scheduled).
 flight(10, arrival, date(2024, 6, 22), time(8, 45), 'FL204', scheduled).
 flight(11, departure, date(2024, 6, 22), time(8, 50), 'FL105', scheduled).
 flight(12, arrival, date(2024, 6, 22), time(8, 55), 'FL205', scheduled).
-flight(13, departure, date(2024, 6, 22), time(9, 0), 'FL106', scheduled).
+flight(13, departure, date(2024, 6, 21), time(8, 5), 'FL106', scheduled).
 flight(14, arrival, date(2024, 6, 22), time(9, 5), 'FL206', scheduled).
-flight(15, departure, date(2024, 6, 22), time(9, 10), 'FL107', scheduled).
+flight(15, departure, date(2024, 6, 21), time(8, 5), 'FL107', scheduled).
 
 % Pravilo za ispisivanje datuma
 display_date(date(Year, Month, Day)) :-
@@ -30,14 +30,15 @@ time_difference(Time1, Time2, Diff) :-
     Diff is abs(Minutes1 - Minutes2).
 
 % Rule to check if two flights conflict.
-conflict(Flight1, Flight2) :-
-    flight(Flight1, Type1, Date1, Time1, _, _),
-    flight(Flight2, Type2, Date2, Time2, _, _),
+conflict(FlightID1, FlightID2) :-
+    flight(FlightID1, Type1, Date1, Time1, _, Status1),
+    flight(FlightID2, Type2, Date2, Time2, _, Status2),
 
     Type1 = Type2,
     Date1 = Date2,
     time_difference(Time1, Time2, Diff),
-    Diff < 5.
+    Diff < 5,
+    (Status1 = Status2 ; (Status1 = scheduled, Status2 = priority)). % Konflik je samo ako je status letova isti ili drugi let ima prioritet
 
 % Rule to find all conflicts for a given flight.
 find_conflicts(Flight, Conflicts) :-
@@ -62,10 +63,10 @@ generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|R
 
 % Rule to sort flights by scheduled time.
 sort_flights_by_time(Flights, SortedFlights) :-
-    predsort(compare_flights_by_dateTime, Flights, SortedFlights).
+    predsort(compare_flights, Flights, SortedFlights).
 
 % Pravilo za poredjenje dva leta po kriteriju datum > vrijeme > ID
-compare_flights_by_dateTime(Order, flight(ID1, Type1, Date1, Time1, FlightNumber1, PriorityStatus1), flight(ID2, Type2, Date2, Time2, FlightNumber2, PriorityStatus2)) :-
+compare_flights(Order, flight(ID1, Type1, Date1, Time1, FlightNumber1, PriorityStatus1), flight(ID2, Type2, Date2, Time2, FlightNumber2, PriorityStatus2)) :-
     Date1 @< Date2 -> Order = '<';
     Date1 @> Date2 -> Order = '>';
     (Time1 @< Time2 -> Order = '<';
