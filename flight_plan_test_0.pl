@@ -21,12 +21,14 @@ flight(15, departure, date(2024, 6, 21), time(8, 5), 'FL107', scheduled).
 
 % Rekurzivno pravilo za generisanje plana i liste konflikta
 generate_flight_plan([], [], []).
-generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|Rest], [flight(FlightID, Type, Date, Time, FlightNumber, Status)|Plan], ConflictIDs) :-
+generate_flight_plan([Flight|Rest], [Flight|Plan], ConflictIDs) :-
+    get_flight_id(Flight, FlightID),
     find_conflicts(FlightID, Conflicts),
     Conflicts = [],
     generate_flight_plan(Rest, Plan, ConflictIDs).
 
-generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|Rest], Plan, [FlightID|ConflictIDs]) :-
+generate_flight_plan([Flight|Rest], Plan, [FlightID|ConflictIDs]) :-
+    get_flight_id(Flight, FlightID),
     find_conflicts(FlightID, Conflicts),
     Conflicts \= [],
     generate_flight_plan(Rest, Plan, ConflictIDs).
@@ -66,6 +68,13 @@ conflict(FlightID1, FlightID2) :-
 find_conflicts(Flight, Conflicts) :-
     findall(Conflict, (flight(Conflict, _, _, _, _, _), conflict(Flight, Conflict), Conflict \= Flight), Conflicts).
 
+
+% --------------------------------------------CONFLICT RESOLUTION--------------------------------------------
+
+% resolve_conflict(ScheduledFlights, FlightID) :-
+    
+
+
 % --------------------------------------------DISPLAY FUNCTIONS--------------------------------------------
 
 % Pravilo za ispisivanje jednog leta
@@ -90,6 +99,8 @@ display_date(date(Year, Month, Day)) :-
 
 % --------------------------------------------HELPER FUNTIONS--------------------------------------------
 
+%Pravilo za nalazenje IDa iz leta
+get_flight_id(flight(FlightId, _, _, _, _, _), FlightId).
 
 % Pravilo za pronalazenje leta preko IDa
 find_flight_by_id(FlightID, Flight) :-
@@ -118,7 +129,7 @@ time_difference(Time1, Time2, Diff) :-
 % Pravilo za ispisivanje citavog plana letova i pronadjenih konflikta
 display_flight_plan() :-
     create_flight_plan(Plan, ConflictIDs),
-    write('FLIGHT SCHEDULE: '), nl,
+    writeln('FLIGHT SCHEDULE: '),
     print_flights(Plan), nl,
-    write('CONFLICTS: '), nl,
+    writeln('CONFLICTS: '),
     print_flights_from_id(ConflictIDs).
