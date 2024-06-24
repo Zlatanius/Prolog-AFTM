@@ -19,9 +19,11 @@ flight(15, departure, date(2024, 6, 22), time(9, 10), 'FL107', scheduled).
 display_date(date(Year, Month, Day)) :-
     format('~d-~|~`0t~d~2+-~|~`0t~d~2+~n', [Year, Month, Day]).
 
+% Pravilo za racunanje minuta
 time_to_minutes(time(H, M), Minutes) :-
     Minutes is H * 60 + M.
 
+% Pravilo za racunanje razliek izmedju dva vremena u minutama
 time_difference(Time1, Time2, Diff) :-
     time_to_minutes(Time1, Minutes1),
     time_to_minutes(Time2, Minutes2),
@@ -62,6 +64,7 @@ generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|R
 sort_flights_by_time(Flights, SortedFlights) :-
     predsort(compare_flights_by_dateTime, Flights, SortedFlights).
 
+% Pravilo za poredjenje dva leta po kriteriju datum > vrijeme > ID
 compare_flights_by_dateTime(Order, flight(ID1, Type1, Date1, Time1, FlightNumber1, PriorityStatus1), flight(ID2, Type2, Date2, Time2, FlightNumber2, PriorityStatus2)) :-
     Date1 @< Date2 -> Order = '<';
     Date1 @> Date2 -> Order = '>';
@@ -77,33 +80,36 @@ create_flight_plan(Plan, ConflictIDs) :-
     sort_flights_by_time(Flights, SortedFlights),
     generate_flight_plan(SortedFlights, Plan, ConflictIDs).
 
-%Predikat za ispisivanje jednog leta
+% Pravilo za ispisivanje jednog leta
 print_flight(flight(ID, Type, date(Year, Month, Day), time(Hour, Minute), FlightNumber, Status)) :-
     format('Flight ID: ~|~t~d~2+, Type: ~|~t~w~9+, Date: ~d-~|~`0t~d~2+-~|~`0t~d~2+, Time: ~|~`0t~d~2+:~|~`0t~d~2+, Flight Number: ~w, Status: ~w~n', [ID, Type, Year, Month, Day, Hour, Minute, FlightNumber, Status]).
 
+% Pravilo za ispisivanje liste letova
 print_flights([]).
 print_flights([Flight | Rest]) :-
     print_flight(Flight),
     print_flights(Rest).
 
+% Pravilo za pronalazenje leta preko IDa
 find_flight_by_id(FlightID, Flight) :-
     flight(FlightID, Type, Date, Time, FlightNumber, Status),
     Flight = flight(FlightID, Type, Date, Time, FlightNumber, Status).
 
+% Rekurzivno pravilo za pravljenje liste letova od liste IDeva
 get_flights_from_ids([], []).
 get_flights_from_ids([FlightID|RestIDs], [Flight|RestFlights]) :-
     find_flight_by_id(FlightID, Flight),
     get_flights_from_ids(RestIDs, RestFlights).
 
+% Pravilo za ispisivanje letova iz liste IDeva
 print_flights_from_id(FlightIDs) :-
     get_flights_from_ids(FlightIDs, Flights),
-    % write(Flights).
     print_flights(Flights).
 
+% Pravilo za ispisivanje citavog plana letova i pronadjenih konflikta
 display_flight_plan() :-
     create_flight_plan(Plan, ConflictIDs),
     write('FLIGHT SCHEDULE: '), nl,
     print_flights(Plan), nl,
     write('CONFLICTS: '), nl,
     print_flights_from_id(ConflictIDs).
-
