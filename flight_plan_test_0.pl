@@ -23,13 +23,13 @@ display_date(date(Year, Month, Day)) :-
 time_to_minutes(time(H, M), Minutes) :-
     Minutes is H * 60 + M.
 
-% Pravilo za racunanje razliek izmedju dva vremena u minutama
+% Pravilo za racunanje razlike izmedju dva vremena u minutama
 time_difference(Time1, Time2, Diff) :-
     time_to_minutes(Time1, Minutes1),
     time_to_minutes(Time2, Minutes2),
     Diff is abs(Minutes1 - Minutes2).
 
-% Rule to check if two flights conflict.
+% Pravilo za provjeru konflikta
 conflict(FlightID1, FlightID2) :-
     flight(FlightID1, Type1, Date1, Time1, _, Status1),
     flight(FlightID2, Type2, Date2, Time2, _, Status2),
@@ -40,13 +40,14 @@ conflict(FlightID1, FlightID2) :-
     Diff < 5,
     (Status1 = Status2 ; (Status1 = scheduled, Status2 = priority)). % Konflik je samo ako je status letova isti ili drugi let ima prioritet
 
-% Rule to find all conflicts for a given flight.
+% Pravilo za pronalazenje svih konflikta sa trenutnim letom
 find_conflicts(Flight, Conflicts) :-
     findall(Conflict, (flight(Conflict, _, _, _, _, _), conflict(Flight, Conflict), Conflict \= Flight), Conflicts).
 
 
 %-------------------------------------------generate_flight_plan WITH CONFLICTS-----------------------------------
 
+% Rekurzivno pravilo za generisanje plana i liste konflikta
 generate_flight_plan([], [], []).
 generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|Rest], [flight(FlightID, Type, Date, Time, FlightNumber, Status)|Plan], ConflictIDs) :-
     find_conflicts(FlightID, Conflicts),
@@ -61,10 +62,6 @@ generate_flight_plan([flight(FlightID, Type, Date, Time, FlightNumber, Status)|R
 %------------------------------------------------------------------------------------------------------------------
 
 
-% Rule to sort flights by scheduled time.
-sort_flights_by_time(Flights, SortedFlights) :-
-    predsort(compare_flights, Flights, SortedFlights).
-
 % Pravilo za poredjenje dva leta po kriteriju datum > vrijeme > ID
 compare_flights(Order, flight(ID1, Type1, Date1, Time1, FlightNumber1, PriorityStatus1), flight(ID2, Type2, Date2, Time2, FlightNumber2, PriorityStatus2)) :-
     Date1 @< Date2 -> Order = '<';
@@ -75,10 +72,10 @@ compare_flights(Order, flight(ID1, Type1, Date1, Time1, FlightNumber1, PriorityS
     ID1 @> ID2 -> Order = '>';
     Order = '=').
 
-% Rule to create the final flight plan.
+% Pravilo za pravljanje finalnog plana
 create_flight_plan(Plan, ConflictIDs) :-
     findall(flight(ID, Type, Date, ScheduledTime, FlightNumber, PriorityStatus), flight(ID, Type, Date, ScheduledTime, FlightNumber, PriorityStatus), Flights),
-    sort_flights_by_time(Flights, SortedFlights),
+    predsort(compare_flights, Flights, SortedFlights),
     generate_flight_plan(SortedFlights, Plan, ConflictIDs).
 
 % Pravilo za ispisivanje jednog leta
