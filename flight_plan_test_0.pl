@@ -161,6 +161,11 @@ has_conflicts([ScheduledFlight | Rest], FlightID, Time) :-
         has_conflicts(Rest, FlightID, Time)
     ).
 
+suggest_new_time(ScheduledFlights, FlightID, NewTime) :-
+    flight(FlightID, Type, Date, CurrentTime, FlightNumber, Status),
+    find_conflict_free_time(ScheduledFlights, FlightID, CurrentTime, NewTime).
+
+
 
 
 
@@ -230,5 +235,6 @@ display_flight_plan() :-
     print_flights_from_id(ConflictIDs),
 
 
-    find_conflict_free_time(Plan, 1, time(8 ,5), NewTime),
+    suggest_new_time(Plan, 1, NewTime),
     write(NewTime).
+
