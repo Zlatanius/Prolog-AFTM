@@ -1,7 +1,7 @@
 % --------------------------------------------FACTS--------------------------------------------
 % Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
 :- dynamic flight/6.
-flight(2, departure, date(2024, 6, 22), time(8, 5), 'FL100', priority).
+flight(2, departure, date(2024, 6, 22), time(8, 10), 'FL100', priority).
 flight(3, departure, date(2024, 6, 22), time(8, 5), 'FL200', scheduled).
 flight(1, departure, date(2024, 6, 22), time(8, 5), 'FL101', scheduled).
 flight(4, arrival, date(2024, 6, 22), time(8, 15), 'FL201', scheduled).
@@ -137,18 +137,22 @@ resolve_conflict([ScheduledFlight | Rest], FlightID, NewFlight) :-
     % Conflicts /= []
     % resolve_conflict(Rest, FlightID, NewFlight).
 
+find_conflict_free_time(ScheduledFlights, FlightID, CurrentTime, NewTime) :-
+    add_five_minutes(CurrentTime, PotentialTime),
+    ( \+ has_conflicts(ScheduledFlights, FlightID, PotentialTime) ->
+        NewTime = PotentialTime
+    ;
+        find_conflict_free_time(ScheduledFlights, FlightID, PotentialTime, NewTime)
+    ).
 
 
-% Provjera da li let ima konflikt sa nekm od letova u listi
+% Provjera da li let ima konflikt sa nekim od letova u listi
 has_conflicts([], _, _) :- false.
 has_conflicts([ScheduledFlight | Rest], FlightID, Time) :-
     get_flight_info_by_id(FlightID, FlightType, FlightDate, _, FlightNumber, FlightStatus),
 
     ScheduledFlight = flight(OtherID, OtherType, OtherDate, OtherTime, _, OtehrStatus),
     AdjusterdFlight = flight(FlightID, FlightType, FlightDate, Time, FlightNumber, FlightStatus),
-
-    write('Adjusted Flight: '), writeln(AdjusterdFlight),
-    write('Scheduled Flight: '), writeln(ScheduledFlight),
 
     OtherID \= FlightID,
     ( conflict(AdjusterdFlight, ScheduledFlight) ->
@@ -226,4 +230,5 @@ display_flight_plan() :-
     print_flights_from_id(ConflictIDs),
 
 
-    has_conflicts(Plan, 15).
+    find_conflict_free_time(Plan, 1, time(8 ,5), NewTime),
+    write(NewTime).
