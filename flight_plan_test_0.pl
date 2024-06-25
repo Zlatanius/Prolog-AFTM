@@ -132,12 +132,19 @@ resolve_conflict([ScheduledFlight | Rest], FlightID, NewFlight) :-
     % Conflicts /= []
     % resolve_conflict(Rest, FlightID, NewFlight).
 
+
+
 % Provjera da li let ima konflikt sa nekm od letova u listi
-has_conflicts([], _, _).
+has_conflicts([], _,) :- false.
 has_conflicts([ScheduledFlight | Rest], FlightID) :-
     ScheduledFlight = flight(OtherID, _, Date, OtherTime, _, _),
+
+    % write('FlightID: '), write(FlightID), nl,
+    % write('OtherID: '), write(OtherID), nl, nl,
+
+    get_flight_by_id(FlightID, Flight),
     OtherID \= FlightID,
-    ( conflict(FlightID, OtherID) ->
+    ( conflict(Flight, ScheduledFlight) ->
         true
     ;
         has_conflicts(Rest, FlightID)
@@ -209,7 +216,7 @@ display_flight_plan() :-
     writeln('FLIGHT SCHEDULE: '),
     print_flights(Plan), nl,
     writeln('CONFLICTS: '),
-    print_flights_from_id(ConflictIDs).
+    print_flights_from_id(ConflictIDs),
 
 
-    % has_conflicts(Plan, 15).
+    has_conflicts(Plan, 15).
