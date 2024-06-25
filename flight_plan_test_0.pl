@@ -30,6 +30,11 @@ get_flight_status(flight(_, _, _, _, _, FlightStatus), FlightStatus).
 get_flight_info(flight(FlightId, FlightType, FlightDate, FlightTime, FlightNumber, FlightStatus),
     FlightId, FlightType, FlightDate, FlightTime, FlightNumber, FlightStatus).
 
+get_flight_info_by_id(FlightId, FlightType, FlightDate, FlightTime, FlightNumber, FlightStatus) :-
+    get_flight_by_id(FlightId, Flight),
+    get_flight_info(Flight, _, FlightType, FlightDate, FlightTime, FlightNumber, FlightStatus).
+
+
 
 % --------------------------------------------FLIGHT SETTERS--------------------------------------------
 
@@ -135,19 +140,21 @@ resolve_conflict([ScheduledFlight | Rest], FlightID, NewFlight) :-
 
 
 % Provjera da li let ima konflikt sa nekm od letova u listi
-has_conflicts([], _,) :- false.
-has_conflicts([ScheduledFlight | Rest], FlightID) :-
-    ScheduledFlight = flight(OtherID, _, Date, OtherTime, _, _),
+has_conflicts([], _, _) :- false.
+has_conflicts([ScheduledFlight | Rest], FlightID, Time) :-
+    get_flight_info_by_id(FlightID, FlightType, FlightDate, _, FlightNumber, FlightStatus),
 
-    % write('FlightID: '), write(FlightID), nl,
-    % write('OtherID: '), write(OtherID), nl, nl,
+    ScheduledFlight = flight(OtherID, OtherType, OtherDate, OtherTime, _, OtehrStatus),
+    AdjusterdFlight = flight(FlightID, FlightType, FlightDate, Time, FlightNumber, FlightStatus),
 
-    get_flight_by_id(FlightID, Flight),
+    write('Adjusted Flight: '), writeln(AdjusterdFlight),
+    write('Scheduled Flight: '), writeln(ScheduledFlight),
+
     OtherID \= FlightID,
-    ( conflict(Flight, ScheduledFlight) ->
+    ( conflict(AdjusterdFlight, ScheduledFlight) ->
         true
     ;
-        has_conflicts(Rest, FlightID)
+        has_conflicts(Rest, FlightID, Time)
     ).
 
 
