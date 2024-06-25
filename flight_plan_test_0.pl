@@ -1,10 +1,11 @@
 % --------------------------------------------FACTS--------------------------------------------
 % Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
+:- dynamic flight/6.
 flight(2, departure, date(2024, 6, 22), time(8, 5), 'FL100', priority).
 flight(3, departure, date(2024, 6, 22), time(8, 5), 'FL200', scheduled).
 flight(1, departure, date(2024, 6, 22), time(8, 5), 'FL101', scheduled).
 flight(4, arrival, date(2024, 6, 22), time(8, 15), 'FL201', scheduled).
-flight(5, departure, date(2024, 6, 22), time(8, 20), 'FL102', scheduled).
+flight(5, arrival, date(2024, 6, 22), time(8, 20), 'FL102', scheduled).
 flight(6, arrival, date(2024, 6, 22), time(8, 25), 'FL202', scheduled).
 flight(7, departure, date(2024, 6, 22), time(8, 30), 'FL103', scheduled).
 flight(8, arrival, date(2024, 6, 22), time(8, 35), 'FL203', scheduled).
@@ -26,29 +27,58 @@ get_flight_time(flight(_, _, _, FlightTime, _, _), FlightTime).
 get_flight_number(flight(_, _, _, _, FlightNumber, _), FlightNumber).
 get_flight_status(flight(_, _, _, _, _, FlightStatus), FlightStatus).
 
+get_flight_info(flight(FlightId, FlightType, FlightDate, FlightTime, FlightNumber, FlightStatus),
+    FlightId, FlightType, FlightDate, FlightTime, FlightNumber, FlightStatus).
+
 
 % --------------------------------------------FLIGHT SETTERS--------------------------------------------
 
-set_flight_type(flight(FlightID, _, FlightDate, FlightTime, FlightNumber, FlightStatus), NewType, flight(FlightID, NewType, FlightDate, FlightTime, FlightNumber, FlightStatus)).
-set_flight_date(flight(FlightID, FlightType, _, FlightTime, FlightNumber, FlightStatus), NewDate, flight(FlightID, FlightType, NewDate, FlightTime, FlightNumber, FlightStatus)).
-set_flight_time(flight(FlightID, FlightType, FlightDate, _, FlightNumber, FlightStatus), NewTime, flight(FlightID, FlightType, FlightDate, NewTime, FlightNumber, FlightStatus)).
-set_flight_number(flight(FlightID, FlightType, FlightDate, FlightTime, _, FlightStatus), NewNumber, flight(FlightID, FlightType, FlightDate, FlightTime, NewNumber, FlightStatus)).
-set_flight_status(flight(FlightID, FlightType, FlightDate, FlightTime, FlightNumber, _), NewStatus, flight(FlightID, FlightType, FlightDate, FlightTime, FlightNumber, NewStatus)).
+% set_flight_type(flight(FlightID, _, FlightDate, FlightTime, FlightNumber, FlightStatus), NewType) :-
+%     NewFlight is flight(FlightID, NewType, FlightDate, FlightTime, FlightNumber, FlightStatus),
+%     writeln(NewFlight).
 
+
+set_flight_date(flight(FlightID, FlightType, _, FlightTime, FlightNumber, FlightStatus), NewDate) :-
+    NewFlight = flight(FlightID, FlightType, NewDate, FlightTime, FlightNumber, FlightStatus),
+    retract(flight(FlightID, _, _, _, _, _)),
+    assertz(NewFlight).
+
+
+set_flight_time(flight(FlightID, FlightType, FlightDate, _, FlightNumber, FlightStatus), NewTime) :-
+    NewFlight = flight(FlightID, FlightType, FlightDate, NewTime, FlightNumber, FlightStatus),
+    retract(flight(FlightID, _, _, _, _, _)),
+    assertz(NewFlight).
+
+set_flight_number(flight(FlightID, FlightType, FlightDate, FlightTime, _, FlightStatus), NewNumber) :-
+    NewFlight = flight(FlightID, FlightType, FlightDate, FlightTime, NewNumber, FlightStatus),
+    retract(flight(FlightID, _, _, _, _, _)),
+    assertz(NewFlight).
+
+set_flight_status(flight(FlightID, FlightType, FlightDate, FlightTime, FlightNumber, _), NewStatus) :-
+    NewFlight = flight(FlightID, FlightType, FlightDate, FlightTime, FlightNumber, NewStatus),
+    retract(flight(FlightID, _, _, _, _, _)),
+    assertz(NewFlight).
 
 % --------------------------------------------PLAN GENERATION--------------------------------------------
 
 % Rekurzivno pravilo za generisanje plana i liste konflikta
 generate_flight_plan([], [], []).
 generate_flight_plan([Flight|Rest], [Flight|Plan], ConflictIDs) :-
-    get_flight_id(Flight, FlightID),
-    find_conflicts(FlightID, Conflicts),
+    % writeln(Flight),
+    % writeln('NO CONFLICT'),
+
+    find_conflicts(Flight, Conflicts),
+
     Conflicts = [],
     generate_flight_plan(Rest, Plan, ConflictIDs).
 
 generate_flight_plan([Flight|Rest], Plan, [FlightID|ConflictIDs]) :-
+    % writeln(Flight),
+    % writeln('CONFLICT'),
+
     get_flight_id(Flight, FlightID),
-    find_conflicts(FlightID, Conflicts),
+    find_conflicts(Flight, Conflicts),
+
     Conflicts \= [],
     generate_flight_plan(Rest, Plan, ConflictIDs).
 
@@ -73,9 +103,9 @@ create_flight_plan(Plan, ConflictIDs) :-
 % --------------------------------------------CONFLICT DETECTION--------------------------------------------
 
 % Pravilo za provjeru konflikta
-conflict(FlightID1, FlightID2) :-
-    flight(FlightID1, Type1, Date1, Time1, _, Status1),
-    flight(FlightID2, Type2, Date2, Time2, _, Status2),
+conflict(Flight1, Flight2) :-
+    get_flight_info(Flight1, _, Type1, Date1, Time1, _, Status1),
+    get_flight_info(Flight2, _, Type2, Date2, Time2, _, Status2),
 
     Type1 = Type2,
     Date1 = Date2,
@@ -85,18 +115,34 @@ conflict(FlightID1, FlightID2) :-
 
 % Pravilo za pronalazenje svih konflikta sa trenutnim letom
 find_conflicts(Flight, Conflicts) :-
-    findall(Conflict, (flight(Conflict, _, _, _, _, _), conflict(Flight, Conflict), Conflict \= Flight), Conflicts).
+    findall(Conflict, (flight(ConflictID, Type, Date, Time, FlightNumber, Status), Conflict = flight(ConflictID, Type, Date, Time, FlightNumber, Status), conflict(Flight, Conflict), Conflict \== Flight), Conflicts).
 
 
 % --------------------------------------------CONFLICT RESOLUTION--------------------------------------------
 
-resolve_conflict(ScheduledFlights, FlightID) :-
+% resolve_conflict([], FlightId, NewFlight).
+resolve_conflict([ScheduledFlight | Rest], FlightID, NewFlight) :-
     get_flight_by_id(FlightID, Flight),
     get_flight_time(Flight, FlightTime),
     add_five_minutes(FlightTime, NewFlightTime),
-    NewFlight is flight().
+    set_flight_time(Flight, NewFlightTime, NewFlight),
 
-    % write(NewFlightTime).
+    find_conflicts(Flight, Conflicts),
+    writeln(Conflicts).
+    % Conflicts /= []
+    % resolve_conflict(Rest, FlightID, NewFlight).
+
+% Provjera da li let ima konflikt sa nekm od letova u listi
+has_conflicts([], _, _).
+has_conflicts([ScheduledFlight | Rest], FlightID) :-
+    ScheduledFlight = flight(OtherID, _, Date, OtherTime, _, _),
+    OtherID \= FlightID,
+    ( conflict(FlightID, OtherID) ->
+        true
+    ;
+        has_conflicts(Rest, FlightID)
+    ).
+
 
 
 
@@ -151,6 +197,9 @@ add_five_minutes(time(Hour, Minute), time(NewHour, NewMinute)) :-
     NewHour is (TotalMinutes // 60) mod 24,
     NewMinute is TotalMinutes mod 60.
 
+delete_all_flights() :-
+    retractall(flight(_, _, _, _, _, _)).
+
 
 % --------------------------------------------MAIN PROGRAM--------------------------------------------
 
@@ -161,3 +210,6 @@ display_flight_plan() :-
     print_flights(Plan), nl,
     writeln('CONFLICTS: '),
     print_flights_from_id(ConflictIDs).
+
+
+    % has_conflicts(Plan, 15).
