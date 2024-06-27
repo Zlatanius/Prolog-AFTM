@@ -16,7 +16,7 @@ flight(11, departure, date(2024, 6, 22), time(8, 50), 'FL105', scheduled).
 flight(12, arrival, date(2024, 6, 22), time(8, 55), 'FL205', scheduled).
 flight(13, departure, date(2024, 6, 21), time(8, 5), 'FL106', scheduled).
 flight(14, arrival, date(2024, 6, 22), time(9, 5), 'FL206', scheduled).
-flight(15, departure, date(2024, 6, 21), time(8, 5), 'FL107', scheduled).
+flight(15, departure, date(2024, 6, 21), time(8, 5), 'FL100', scheduled).
 
 
 
