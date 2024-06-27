@@ -227,7 +227,7 @@ delete_all_flights() :-
 
 % --------------------------------------------MAIN PROGRAM--------------------------------------------
 
-% Pravilo za ispisivanje citavog plana letova i pronadjenih konflikta
+% Pravilo za ispisivanje citavog plana letova, pronadjenih konflikta i njihovih rjesenja
 display_flight_plan() :-
     create_flight_plan(Plan, ConflictIDs),
     writeln('FLIGHT SCHEDULE: '),
@@ -239,5 +239,5 @@ display_flight_plan() :-
 
     resolve_conflicts(Plan, ConflictIDs, NewPlan),
     predsort(compare_flights, NewPlan, SortedNewPlan),
-    writeln('NEW FLIGHT SCHEDULE: '),
+    writeln('SUGESTED FLIGHT SCHEDULE: '),
     print_flights(SortedNewPlan), nl.
