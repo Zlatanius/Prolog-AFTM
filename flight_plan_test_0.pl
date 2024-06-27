@@ -127,10 +127,11 @@ find_conflicts(Flight, Conflicts) :-
 
 % Pravilo koje pronalazi prvo slobodno vrijeme za let
 find_conflict_free_time(ScheduledFlights, FlightID, CurrentTime, NewTime) :- % 1. flight/6, 2. Id, 3. time/2, 4. Out(time/2)
-    add_five_minutes(CurrentTime, PotentialTime),
-    ( \+ has_conflicts(ScheduledFlights, FlightID, PotentialTime) ->
-        NewTime = PotentialTime
+
+    ( \+ has_conflicts(ScheduledFlights, FlightID, CurrentTime) ->
+        NewTime = CurrentTime
     ;
+        add_five_minutes(CurrentTime, PotentialTime),
         find_conflict_free_time(ScheduledFlights, FlightID, PotentialTime, NewTime)
     ).
 
@@ -162,7 +163,7 @@ resolve_conflicts(ScheduledFlights, [ConflictingFlightId | RestConflictsIds], Ne
 
     get_flight_by_id(ConflictingFlightId, ConflictingFlight),
     set_flight_time(ConflictingFlight, NewFlightTime), % 1. flight/6, 2. time/2
-    
+
     get_flight_by_id(ConflictingFlightId, UpdatedFlight),
     resolve_conflicts([UpdatedFlight | ScheduledFlights], RestConflictsIds, NewSchedule).
 
@@ -237,6 +238,6 @@ display_flight_plan() :-
     print_flights(Conflicts), nl,
 
     resolve_conflicts(Plan, ConflictIDs, NewPlan),
-    write('New Plan: '), writeln(NewPlan).
-
-% Napraviti funkciju koja prolazi kroz listu konflikta i ako moze ispravlja vremena letova
+    predsort(compare_flights, NewPlan, SortedNewPlan),
+    writeln('NEW FLIGHT SCHEDULE: '),
+    print_flights(SortedNewPlan), nl.
