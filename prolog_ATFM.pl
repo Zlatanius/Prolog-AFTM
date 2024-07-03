@@ -1,6 +1,6 @@
 % ------------------------------------CINJENICE------------------------------------
 
-% Define the flight facts: flight(ID, Type, ScheduledTime, FlightNumber, PriorityStatus).
+% Definisanje postojecih letova
 :- dynamic flight/6. % letovi moraju biti dinamicni kako bi se mogli izmjenjivati
 flight(2, departure, date(2024, 6, 22), time(8, 10), 'FL100', priority).
 flight(3, departure, date(2024, 6, 22), time(8, 5), 'FL200', scheduled).
